@@ -14,13 +14,18 @@ const graph = [
 ];
 
 const routes: RouteList = [];
-const parentsList: number[] = [];
+const parentsList: number[] = [0, 0];
+const settled = Array.from({ length: graph[0].length }, () => false);
+settled[1] = true;
 
-function getParents(graph: number[][]) {
-  for (let top = 2; top < graph.length; top++) {
+function getParents(graph: number[][], top: number) {
+  if (!settled[top]) {
+    settled[top] = true;
+
     for (let i = 0; i < graph[top].length; i++) {
-      if ((graph[top][i] || graph[i][top]) && !parentsList[top]) {
+      if ((graph[top][i] || graph[i][top]) && settled[i]) {
         parentsList[top] = i;
+        getParents(graph, i);
       }
     }
   }
@@ -31,22 +36,28 @@ function findShortestPath(
   departedTop: number,
   stopTop: number
 ) {
-  getParents(graph);
-  parentsList[1] = 0;
+  for (let i = 2; i < graph.length; i++) {
+    getParents(graph, i);
+  }
+
+  settled[1] = true;
 
   const topList: number[] = [];
-
   let currentTop = stopTop;
 
   while (currentTop !== departedTop) {
     topList.push(currentTop);
 
-    if (!parentsList[currentTop] && parentsList[currentTop] !== 0)
+    console.log(currentTop);
+
+    if (!parentsList[currentTop] && parentsList[currentTop] === 0)
       return 'No path';
+
     currentTop = parentsList[currentTop];
   }
 
   topList.push(departedTop);
+
   return topList.reverse().join('->');
 }
-console.log(findShortestPath(graph, 2, 7));
+console.log(findShortestPath(graph, 1, 7));
